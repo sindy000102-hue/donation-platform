@@ -1,0 +1,73 @@
+.admin-app { min-height: 100vh; background: #fefdf8; color: #2d3a2e; font-family: "Noto Sans KR","Pretendard",sans-serif; }
+
+.admin-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; border-bottom: 1px solid rgba(255,183,77,0.15); background: #ffffff; box-shadow: 0 2px 12px rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 100; }
+.admin-header-left { display: flex; align-items: center; gap: 16px; }
+.admin-header h1 { font-size: 20px; font-weight: 800; color: #f57f17; }
+.admin-back { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); background: #fff; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; }
+.admin-back:hover { background: #f5f5f5; color: #333; }
+.admin-account { padding: 8px 16px; border-radius: 8px; background: #fff8e1; border: 1px solid rgba(255,183,77,0.3); color: #f57f17; font-size: 13px; font-weight: 600; }
+
+.admin-tabs { display: flex; gap: 0; padding: 0 28px; border-bottom: 1px solid rgba(0,0,0,0.06); background: #fff; }
+.tab { padding: 14px 24px; font-size: 14px; font-weight: 600; color: #999; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: inherit; }
+.tab:hover { color: #666; }
+.tab.active { color: #f57f17; border-bottom-color: #f57f17; }
+
+.admin-main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.stat-card { background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; text-align: center; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+.stat-card.highlight { background: #fffde7; border-color: rgba(255,183,77,0.2); }
+.stat-icon { font-size: 28px; margin-bottom: 10px; }
+.stat-value { font-size: 24px; font-weight: 800; color: #2d3a2e; margin-bottom: 4px; }
+.stat-card.highlight .stat-value { color: #f57f17; }
+.stat-label { font-size: 12px; color: #999; }
+
+.chart-card { background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.chart-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 20px; color: #f57f17; }
+.bar-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 160px; padding-top: 20px; }
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.bar-value { font-size: 11px; color: #999; font-weight: 600; }
+.bar { width: 32px; min-height: 4px; background: linear-gradient(180deg, #ffb74d, #ffa726); border-radius: 4px 4px 0 0; transition: height 0.5s ease; }
+.bar-label { font-size: 11px; color: #999; }
+
+.campaign-list { display: flex; flex-direction: column; gap: 12px; }
+.campaign-row { background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; position: relative; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.campaign-row:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+.campaign-row.goal-reached { border-color: rgba(255,183,77,0.3); background: #fffde7; }
+.crown-badge { position: absolute; top: -10px; right: 16px; padding: 4px 12px; border-radius: 20px; background: linear-gradient(135deg, #ffb74d, #ffa726); color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 4px 12px rgba(255,183,77,0.3); animation: crownPulse 2s ease-in-out infinite; }
+@keyframes crownPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+.campaign-row-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.campaign-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #2d3a2e; }
+.campaign-creator { font-size: 12px; color: #999; }
+.campaign-status { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.status-badge.active { background: #e8f5e9; color: #2e7d32; }
+.status-badge.closed { background: #f5f5f5; color: #999; }
+
+.campaign-row-mid .progress-bar { height: 6px; background: #e8f5e9; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.campaign-row-mid .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #66bb6a, #43a047); transition: width 0.6s ease; }
+.campaign-row.goal-reached .progress-fill { background: linear-gradient(90deg, #ffb74d, #ffa726); }
+.campaign-row-stats { display: flex; justify-content: space-between; font-size: 12px; color: #999; }
+
+.delete-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.2); background: rgba(239,68,68,0.05); color: #ef4444; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 6px; }
+.delete-btn:hover { background: rgba(239,68,68,0.1); }
+.delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.admin-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; background: #fff; border: 1px solid rgba(255,183,77,0.3); color: #f57f17; font-size: 14px; font-weight: 600; z-index: 300; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+
+.donation-table { border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.table-header { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 1.5fr 1.2fr; padding: 14px 18px; background: #f9fdf6; font-size: 12px; font-weight: 700; color: #888; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.table-row { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 1.5fr 1.2fr; padding: 12px 18px; font-size: 13px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+.table-row:hover { background: #f9fdf6; }
+.cell-campaign { color: #2d3a2e; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-donor { color: #2e7d32; font-weight: 600; }
+.cell-amount { font-weight: 700; }
+.cell-msg { color: #888; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-time { color: #bbb; font-size: 11px; }
+
+.admin-empty { text-align: center; padding: 60px 20px; color: #aaa; }
+.admin-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 16px; color: #999; }
+.admin-loading .spinner { width: 40px; height: 40px; border: 3px solid #fff3e0; border-top-color: #ffb74d; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

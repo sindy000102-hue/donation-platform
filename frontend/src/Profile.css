@@ -1,0 +1,45 @@
+.profile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
+.profile-box { background: #fff; border-radius: 20px; padding: 32px 28px; max-width: 480px; width: 100%; border: 1px solid rgba(0,0,0,0.06); max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+.profile-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #1b5e20; }
+
+.profile-role-select { display: flex; gap: 0; margin-bottom: 20px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(76,175,80,0.2); }
+.profile-role-select button { flex: 1; padding: 12px; border: none; background: #fff; color: #999; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.profile-role-select button.active { background: #e8f5e9; color: #2e7d32; }
+.profile-role-select button:first-child { border-right: 1px solid rgba(76,175,80,0.15); }
+
+.profile-box label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; }
+.profile-box input, .profile-box textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); background: #fff; color: #2d3a2e; font-size: 14px; outline: none; margin-bottom: 14px; font-family: inherit; }
+.profile-box input:focus, .profile-box textarea:focus { border-color: rgba(76,175,80,0.5); box-shadow: 0 0 0 3px rgba(76,175,80,0.08); }
+.profile-box textarea { resize: vertical; min-height: 70px; }
+.profile-hint { font-size: 12px; color: #999; margin-bottom: 16px; }
+.profile-warning { font-size: 13px; color: #f57f17; background: #fffde7; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; line-height: 1.5; border: 1px solid rgba(255,183,77,0.2); }
+
+.profile-save { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #66bb6a, #43a047); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(76,175,80,0.2); }
+.profile-cancel { display: block; margin: 12px auto 0; padding: 8px 0; color: #999; font-size: 13px; cursor: pointer; border: none; background: none; font-family: inherit; }
+
+.display-name { display: inline-flex; align-items: center; gap: 3px; }
+.display-name.org { color: #2e7d32; font-weight: 600; }
+.display-name.donor { color: #555; }
+.crown-icon { font-size: 14px; }
+.crown-icon.crown-gold { filter: drop-shadow(0 0 3px rgba(245,158,11,0.5)); }
+.crown-icon.crown-silver { filter: drop-shadow(0 0 3px rgba(158,158,158,0.5)); }
+.crown-icon.crown-bronze { filter: drop-shadow(0 0 3px rgba(205,127,50,0.5)); }
+.org-badge { font-size: 14px; margin-right: 2px; }
+.org-badge.org-gold { filter: drop-shadow(0 0 3px rgba(245,158,11,0.5)); }
+.org-badge.org-silver { filter: drop-shadow(0 0 3px rgba(158,158,158,0.5)); }
+.org-badge.org-bronze { filter: drop-shadow(0 0 3px rgba(205,127,50,0.5)); }
+
+.comments-section { margin-top: 28px; }
+.comments-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #2e7d32; }
+.comment-input-area { display: flex; gap: 10px; margin-bottom: 20px; }
+.comment-input-area input { flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); background: #fff; color: #2d3a2e; font-size: 14px; outline: none; font-family: inherit; }
+.comment-input-area input:focus { border-color: rgba(76,175,80,0.5); }
+.comment-submit { padding: 12px 20px; border-radius: 10px; border: none; background: linear-gradient(135deg, #66bb6a, #43a047); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+
+.comment-list { display: flex; flex-direction: column; gap: 10px; }
+.comment-item { padding: 12px 16px; border-radius: 12px; background: #f9fdf6; border: 1px solid rgba(76,175,80,0.08); }
+.comment-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
+.comment-author { font-weight: 600; }
+.comment-date { color: #bbb; }
+.comment-text { font-size: 13px; color: #555; line-height: 1.5; }
+.comment-empty { text-align: center; padding: 24px; color: #aaa; font-size: 13px; }
