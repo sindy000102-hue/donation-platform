@@ -9,7 +9,7 @@ import MyPage from "./MyPage";
 import "./Profile.css";
 import "./App.css";
 
-const CONTRACT_ADDRESS = "0x78ffC788eBcC39A97c7B2cad43Db2951e3555634";
+const CONTRACT_ADDRESS = "0x3F6D5aefD1939f9E773A4989cd8516b8dbCf0005";
 const CONTRACT_ABI = contractData.abi;
 
 const shorten = (addr) => addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";

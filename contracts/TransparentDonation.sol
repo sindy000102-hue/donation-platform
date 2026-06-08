@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 /**
  * @title TransparentDonation
  * @notice 투명 기부 플랫폼
- *  - NFT 기부 영수증 발급 (ERC-721)
- *  - 단계별 자금 방출 (25/50/75/100%)
+ *  - NFT 기부 영수증 (ERC-721)
+ *  - 마감 후 또는 목표 달성 시 인출
  *  - IPFS 증빙 해시 온체인 기록
  */
 contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
@@ -22,9 +22,9 @@ contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
         string imageHash;
         uint256 goalAmount;
         uint256 raisedAmount;
-        uint256 withdrawnAmount;
         uint256 deadline;
         bool isActive;
+        bool withdrawn;
     }
 
     struct Donation {
@@ -35,31 +35,22 @@ contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
         uint256 nftTokenId;
     }
 
-    struct Milestone {
-        bool evidenceSubmitted;
-        bool fundsClaimed;
-        string evidenceHash;
-        string evidenceNote;
-        uint256 claimedAt;
-    }
-
     uint256 public campaignCount;
     uint256 private _nextTokenId;
-    uint8[4] public MILESTONE_PERCENTS = [25, 50, 75, 100];
 
     mapping(uint256 => Campaign) public campaigns;
     mapping(uint256 => Donation[]) public donations;
     mapping(uint256 => mapping(address => uint256)) public donorTotal;
-    mapping(uint256 => Milestone[4]) public milestones;
     mapping(uint256 => string[]) public evidenceHashes;
 
     event CampaignCreated(uint256 indexed id, address indexed creator, string title, uint256 goalAmount);
     event DonationReceived(uint256 indexed campaignId, address indexed donor, uint256 amount, uint256 nftTokenId);
     event NFTMinted(uint256 indexed tokenId, address indexed donor, uint256 indexed campaignId, uint256 amount);
-    event MilestoneEvidenceSubmitted(uint256 indexed campaignId, uint8 milestoneIndex, string evidenceHash);
-    event MilestoneFundsClaimed(uint256 indexed campaignId, uint8 milestoneIndex, uint256 amount);
+    event FundsWithdrawn(uint256 indexed campaignId, address indexed creator, uint256 amount);
+    event CampaignCompleted(uint256 indexed campaignId);
     event CampaignDeactivated(uint256 indexed id, address indexed deactivatedBy);
     event DonationRefunded(uint256 indexed campaignId, address indexed donor, uint256 amount);
+    event EvidenceSubmitted(uint256 indexed campaignId, string evidenceHash);
 
     error CampaignNotActive();
     error DeadlinePassed();
@@ -67,10 +58,8 @@ contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
     error NotCampaignCreator();
     error TransferFailed();
     error NotAuthorized();
-    error MilestoneNotReached();
-    error EvidenceNotSubmitted();
-    error AlreadyClaimed();
-    error InvalidMilestone();
+    error AlreadyWithdrawn();
+    error WithdrawNotAllowed();
 
     constructor() Ownable(msg.sender) ERC721("DonationReceipt", "DONATE") {}
 
@@ -84,7 +73,7 @@ contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
         campaigns[id] = Campaign({
             id: id, creator: msg.sender, title: _title, description: _description,
             imageHash: _imageHash, goalAmount: _goalAmount, raisedAmount: 0,
-            withdrawnAmount: 0, deadline: block.timestamp + (_durationDays * 1 days), isActive: true
+            deadline: block.timestamp + (_durationDays * 1 days), isActive: true, withdrawn: false
         });
         emit CampaignCreated(id, msg.sender, _title, _goalAmount);
         return id;
@@ -111,81 +100,60 @@ contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
 
         emit DonationReceived(_campaignId, msg.sender, msg.value, tokenId);
         emit NFTMinted(tokenId, msg.sender, _campaignId, msg.value);
-    }
 
-    // ── 마일스톤 증빙 제출 ──
-    function submitMilestoneEvidence(
-        uint256 _campaignId, uint8 _milestoneIndex,
-        string calldata _evidenceHash, string calldata _note
-    ) external {
-        if (_milestoneIndex > 3) revert InvalidMilestone();
-        Campaign storage c = campaigns[_campaignId];
-        if (msg.sender != c.creator) revert NotCampaignCreator();
-
-        milestones[_campaignId][_milestoneIndex].evidenceSubmitted = true;
-        milestones[_campaignId][_milestoneIndex].evidenceHash = _evidenceHash;
-        milestones[_campaignId][_milestoneIndex].evidenceNote = _note;
-        evidenceHashes[_campaignId].push(_evidenceHash);
-
-        emit MilestoneEvidenceSubmitted(_campaignId, _milestoneIndex, _evidenceHash);
-    }
-
-    // ── 마일스톤별 자금 인출 ──
-    function claimMilestone(uint256 _campaignId, uint8 _milestoneIndex) external nonReentrant {
-        if (_milestoneIndex > 3) revert InvalidMilestone();
-        Campaign storage c = campaigns[_campaignId];
-        if (msg.sender != c.creator) revert NotCampaignCreator();
-
-        Milestone storage m = milestones[_campaignId][_milestoneIndex];
-        if (m.fundsClaimed) revert AlreadyClaimed();
-        if (!m.evidenceSubmitted) revert EvidenceNotSubmitted();
-
-        uint256 requiredAmount = (c.goalAmount * MILESTONE_PERCENTS[_milestoneIndex]) / 100;
-        if (c.raisedAmount < requiredAmount) revert MilestoneNotReached();
-
-        if (_milestoneIndex > 0 && !milestones[_campaignId][_milestoneIndex - 1].fundsClaimed)
-            revert InvalidMilestone();
-
-        uint256 milestoneAmount = c.goalAmount / 4;
-        uint256 available = c.raisedAmount - c.withdrawnAmount;
-        uint256 claimAmount = milestoneAmount > available ? available : milestoneAmount;
-        if (claimAmount == 0) revert ZeroAmount();
-
-        m.fundsClaimed = true;
-        m.claimedAt = block.timestamp;
-        c.withdrawnAmount += claimAmount;
-
-        if (_milestoneIndex == 3) {
-            uint256 remaining = c.raisedAmount - c.withdrawnAmount;
-            if (remaining > 0) { c.withdrawnAmount += remaining; claimAmount += remaining; }
-            c.isActive = false;
+        // 목표 달성 시 자동 조기 완료
+        if (c.raisedAmount >= c.goalAmount) {
+            emit CampaignCompleted(_campaignId);
         }
-
-        (bool success, ) = payable(c.creator).call{value: claimAmount}("");
-        if (!success) revert TransferFailed();
-        emit MilestoneFundsClaimed(_campaignId, _milestoneIndex, claimAmount);
     }
 
-    // ── 캠페인 삭제 + 비율 환불 ──
+    // ── 자금 인출 (마감 후 또는 목표 100% 달성 시) ──
+    function withdraw(uint256 _campaignId) external nonReentrant {
+        Campaign storage c = campaigns[_campaignId];
+        if (msg.sender != c.creator) revert NotCampaignCreator();
+        if (c.withdrawn) revert AlreadyWithdrawn();
+        if (c.raisedAmount == 0) revert ZeroAmount();
+
+        // 조건: 마감 후 OR 목표 달성
+        bool deadlinePassed = block.timestamp > c.deadline;
+        bool goalReached = c.raisedAmount >= c.goalAmount;
+        if (!deadlinePassed && !goalReached) revert WithdrawNotAllowed();
+
+        uint256 amount = c.raisedAmount;
+        c.withdrawn = true;
+        c.isActive = false;
+
+        (bool success, ) = payable(c.creator).call{value: amount}("");
+        if (!success) revert TransferFailed();
+
+        emit FundsWithdrawn(_campaignId, c.creator, amount);
+    }
+
+    // ── 증빙 제출 (IPFS 해시 온체인 기록) ──
+    function submitEvidence(uint256 _campaignId, string calldata _evidenceHash) external {
+        Campaign storage c = campaigns[_campaignId];
+        if (msg.sender != c.creator) revert NotCampaignCreator();
+        evidenceHashes[_campaignId].push(_evidenceHash);
+        emit EvidenceSubmitted(_campaignId, _evidenceHash);
+    }
+
+    // ── 캠페인 삭제 + 환불 ──
     function deactivateCampaign(uint256 _campaignId) external nonReentrant {
         Campaign storage c = campaigns[_campaignId];
         if (!c.isActive) revert CampaignNotActive();
         if (msg.sender != owner() && msg.sender != c.creator) revert NotAuthorized();
         c.isActive = false;
 
-        uint256 refundable = c.raisedAmount - c.withdrawnAmount;
-        if (refundable > 0) {
+        if (c.raisedAmount > 0 && !c.withdrawn) {
             Donation[] storage donList = donations[_campaignId];
-            uint256 totalDonated = 0;
-            for (uint256 i = 0; i < donList.length; i++) totalDonated += donList[i].amount;
             for (uint256 i = 0; i < donList.length; i++) {
-                uint256 refundAmount = (donList[i].amount * refundable) / totalDonated;
+                uint256 refundAmount = donList[i].amount;
                 if (refundAmount > 0) {
                     (bool success, ) = payable(donList[i].donor).call{value: refundAmount}("");
                     if (success) emit DonationRefunded(_campaignId, donList[i].donor, refundAmount);
                 }
             }
-            c.withdrawnAmount = c.raisedAmount;
+            c.raisedAmount = 0;
         }
         emit CampaignDeactivated(_campaignId, msg.sender);
     }
@@ -194,14 +162,13 @@ contract TransparentDonation is Ownable, ReentrancyGuard, ERC721URIStorage {
     function getCampaign(uint256 _id) external view returns (Campaign memory) { return campaigns[_id]; }
     function getDonations(uint256 _campaignId) external view returns (Donation[] memory) { return donations[_campaignId]; }
     function getDonationCount(uint256 _campaignId) external view returns (uint256) { return donations[_campaignId].length; }
-    function getMilestones(uint256 _campaignId) external view returns (Milestone[4] memory) { return milestones[_campaignId]; }
     function getEvidenceHashes(uint256 _campaignId) external view returns (string[] memory) { return evidenceHashes[_campaignId]; }
 
     // ── NFT 메타데이터 빌더 ──
     function _buildTokenURI(uint256 tokenId, string memory campaignTitle, uint256 amount, address donor) internal pure returns (string memory) {
         return string(abi.encodePacked(
             '{"name":"Donation Receipt #', _toString(tokenId),
-            '","description":"Transparent Donation Platform - ', campaignTitle,
+            '","description":"Transparent Donation - ', campaignTitle,
             '","attributes":[{"trait_type":"Amount (finney)","value":', _toString(amount / 1e15),
             '},{"trait_type":"Donor","value":"', _toHexString(donor), '"}]}'
         ));
